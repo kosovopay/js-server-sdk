@@ -1,5 +1,7 @@
 # kosovopay
 
+[![CI](https://github.com/shkumbinhasani/kosovopay/actions/workflows/ci.yml/badge.svg)](https://github.com/shkumbinhasani/kosovopay/actions/workflows/ci.yml)
+
 > Type-safe, runtime-agnostic SDK for the [KosovoPay](https://pay.kosovo.sh/docs) payment orchestrator.
 
 One client. Runs unchanged on **Node 18+**, **Bun**, **Deno**, and **Cloudflare Workers** — built entirely on web-standard `fetch` and Web Crypto, with **zero dependencies**. Fully typed end to end: every resource, parameter, error `code`, and webhook event is inferred for you.

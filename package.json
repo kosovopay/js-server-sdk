@@ -4,7 +4,15 @@
   "description": "Type-safe, runtime-agnostic SDK for the KosovoPay payment orchestrator. Runs on Node, Bun, Deno, and Cloudflare Workers — zero dependencies.",
   "type": "module",
   "license": "MIT",
+  "author": "shkumbinhasani",
   "homepage": "https://pay.kosovo.sh/docs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shkumbinhasani/kosovopay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shkumbinhasani/kosovopay/issues"
+  },
   "keywords": [
     "kosovopay",
     "payments",
@@ -15,28 +23,41 @@
     "webhooks",
     "typescript"
   ],
-  "module": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts"
-    }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
-    "src",
-    "README.md"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run scripts/fix-dts.ts",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "ci": "bun run typecheck && bun test",
+    "prepack": "bun run build",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "bun run build && changeset publish"
   },
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@types/bun": "latest"
   },
   "peerDependencies": {

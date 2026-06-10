@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+# OIDC trusted publishing to npm needs `id-token: write`.
+# The Changesets action needs `contents: write` (tags/commits) and
+# `pull-requests: write` (to open the "Version Packages" PR).
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version or publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so Changesets can determine what changed.
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # `changeset publish` shells out to `npm publish`, so we need Node's npm.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Trusted publishing (OIDC) + provenance require npm >= 11.5.1.
+      - name: Upgrade npm (OIDC trusted publishing)
+        run: npm install --global npm@latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # If there are pending changesets, this opens/updates a "Version Packages"
+      # PR. When that PR is merged, it instead runs `publish`, which builds and
+      # publishes to npm via OIDC — no NPM_TOKEN required.
+      - name: Create release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: bun run version
+          publish: bun run release
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
