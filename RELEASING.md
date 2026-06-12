@@ -33,10 +33,10 @@ package to exist before you can attach a trusted publisher to it.
    ```
 
 2. **Configure the trusted publisher** on
-   <https://www.npmjs.com/package/kosovopay/access> → *Trusted Publisher*:
+   <https://www.npmjs.com/package/@kosovopay/server-sdk/access> → *Trusted Publisher*:
    - Publisher: **GitHub Actions**
-   - Organization / user: `shkumbinhasani`
-   - Repository: `kosovopay`
+   - Organization / user: `kosovopay`
+   - Repository: `js-server-sdk`
    - Workflow filename: `release.yml`
    - Environment: *(leave blank)*
 

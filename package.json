@@ -1,17 +1,17 @@
 {
-  "name": "kosovopay",
+  "name": "@kosovopay/server-sdk",
   "version": "0.1.0",
-  "description": "Type-safe, runtime-agnostic SDK for the KosovoPay payment orchestrator. Runs on Node, Bun, Deno, and Cloudflare Workers — zero dependencies.",
+  "description": "Type-safe, runtime-agnostic server SDK for the KosovoPay payment orchestrator. Runs on Node, Bun, Deno, and Cloudflare Workers — zero dependencies.",
   "type": "module",
   "license": "MIT",
   "author": "shkumbinhasani",
   "homepage": "https://pay.kosovo.sh/docs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shkumbinhasani/kosovopay.git"
+    "url": "git+https://github.com/kosovopay/js-server-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/shkumbinhasani/kosovopay/issues"
+    "url": "https://github.com/kosovopay/js-server-sdk/issues"
   },
   "keywords": [
     "kosovopay",

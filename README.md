@@ -1,13 +1,14 @@
-# kosovopay
+# @kosovopay/server-sdk
 
-[![CI](https://github.com/shkumbinhasani/kosovopay/actions/workflows/ci.yml/badge.svg)](https://github.com/shkumbinhasani/kosovopay/actions/workflows/ci.yml)
+[![CI](https://github.com/kosovopay/js-server-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/kosovopay/js-server-sdk/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@kosovopay/server-sdk.svg)](https://www.npmjs.com/package/@kosovopay/server-sdk)
 
-> Type-safe, runtime-agnostic SDK for the [KosovoPay](https://pay.kosovo.sh/docs) payment orchestrator.
+> Type-safe, runtime-agnostic server SDK for the [KosovoPay](https://pay.kosovo.sh/docs) payment orchestrator.
 
 One client. Runs unchanged on **Node 18+**, **Bun**, **Deno**, and **Cloudflare Workers** — built entirely on web-standard `fetch` and Web Crypto, with **zero dependencies**. Fully typed end to end: every resource, parameter, error `code`, and webhook event is inferred for you.
 
 ```ts
-import { KosovoPay } from "kosovopay";
+import { KosovoPay } from "@kosovopay/server-sdk";
 
 const pay = new KosovoPay(process.env.KOSOVOPAY_API_KEY!);
 
@@ -35,8 +36,8 @@ KosovoPay is a **payment orchestrator**: you bring your own bank acquiring crede
 ## Install
 
 ```bash
-bun add kosovopay
-# or: npm i kosovopay / pnpm add kosovopay / deno add npm:kosovopay
+bun add @kosovopay/server-sdk
+# or: npm i @kosovopay/server-sdk / pnpm add @kosovopay/server-sdk / deno add npm:@kosovopay/server-sdk
 ```
 
 ## Configuration
@@ -225,7 +226,7 @@ Return any `2xx` to acknowledge. Non-2xx or a timeout triggers retries (1m → 5
 Every API failure throws a typed `KosovoPayApiError`. Switch on the stable `code`, never the message:
 
 ```ts
-import { KosovoPayApiError } from "kosovopay";
+import { KosovoPayApiError } from "@kosovopay/server-sdk";
 
 try {
   await pay.payments.create({ amount: 1, currency: "EUR", success_url: "…" });

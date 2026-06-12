@@ -16,7 +16,7 @@ import { Webhooks } from "./webhooks.ts";
  * The KosovoPay client.
  *
  * ```ts
- * import { KosovoPay } from "kosovopay";
+ * import { KosovoPay } from "@kosovopay/server-sdk";
  *
  * const pay = new KosovoPay(process.env.KOSOVOPAY_API_KEY!);
  *
