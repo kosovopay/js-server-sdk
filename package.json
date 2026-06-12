@@ -42,8 +42,11 @@
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json && bun run scripts/fix-dts.ts",
     "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "format": "biome check --write",
     "test": "bun test",
-    "ci": "bun run typecheck && bun test",
+    "smoke": "bun run build && bun scripts/smoke.mjs",
+    "ci": "bun run typecheck && bun run lint && bun test",
     "prepack": "bun run build",
     "changeset": "changeset",
     "version": "changeset version",
@@ -57,6 +60,7 @@
     "provenance": true
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
     "@changesets/cli": "^2.31.0",
     "@types/bun": "latest"
   },

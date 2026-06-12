@@ -146,6 +146,21 @@ const me = await pay.me();
 
 ---
 
+## Escape hatch
+
+Need an endpoint this SDK version doesn't model yet? `pay.request()` calls any
+path directly with the same auth, versioning, retries, and idempotency the typed
+resources get:
+
+```ts
+const res = await pay.request<{ ok: boolean }>("POST", "/some/new/endpoint", {
+  body: { foo: "bar" },
+  query: { expand: "details" },
+});
+```
+
+---
+
 ## Webhooks
 
 Webhooks — not the browser redirect — are the source of truth for fulfilment. Register an endpoint, store the one-time `secret`, and verify every delivery.
@@ -286,11 +301,18 @@ await pay.payments.retrieve("pi_…", { signal, apiVersion: "2026-06-01", maxRet
 
 ```bash
 bun install
-bun test        # run the suite (transport, pagination, webhook crypto)
-bun run typecheck
+bun run ci      # typecheck + lint + tests (what CI runs)
+bun run smoke   # build, then run the smoke test on the current runtime
 bun run build
 ```
+
+CI proves the cross-runtime promise: the built output is verified to contain no
+Node builtins and the smoke test runs on **Node 18/20/22, Bun, and Deno**.
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) to get started and
+[`SECURITY.md`](./SECURITY.md) to report a vulnerability.
 
 ## License
 
 MIT
+

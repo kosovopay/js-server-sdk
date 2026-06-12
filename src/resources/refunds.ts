@@ -18,7 +18,10 @@ export class Refunds {
    * Refund a captured payment. Omit `amount` for a full refund; pass it for a
    * partial (on banks whose capabilities allow partials).
    */
-  create(params: RefundCreateParams, options?: RequestOptions): Promise<Refund> {
+  create(
+    params: RefundCreateParams,
+    options?: RequestOptions,
+  ): Promise<Refund> {
     return this.#http.request<Refund>({
       method: "POST",
       path: "/refunds",
@@ -45,7 +48,10 @@ export class Refunds {
       this.#http.request<ListResponse<Refund>>({
         method: "GET",
         path: "/refunds",
-        query: { ...params, starting_after: startingAfter ?? params.starting_after },
+        query: {
+          ...params,
+          starting_after: startingAfter ?? params.starting_after,
+        },
         options,
       });
     return new Page(await fetchPage(undefined), fetchPage);

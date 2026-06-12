@@ -1,13 +1,18 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type FetchLike,
   KosovoPay,
   KosovoPayApiError,
-  type FetchLike,
+  KosovoPayTimeoutError,
 } from "../src/index.ts";
 
 /** A tiny scriptable fetch double. Returns queued responses and records requests. */
 function mockFetch(
-  responses: Array<{ status: number; body: unknown; headers?: Record<string, string> }>,
+  responses: Array<{
+    status: number;
+    body: unknown;
+    headers?: Record<string, string>;
+  }>,
 ) {
   const calls: Array<{ url: string; init: RequestInit }> = [];
   let i = 0;
@@ -34,7 +39,9 @@ const payment = {
 
 describe("HttpClient", () => {
   test("sends auth, version, and accept headers", async () => {
-    const { fetch, calls } = mockFetch([{ status: 200, body: { object: "me" } }]);
+    const { fetch, calls } = mockFetch([
+      { status: 200, body: { object: "me" } },
+    ]);
     const pay = new KosovoPay({ apiKey: "sk_test_abc", fetch });
     await pay.me();
 
@@ -101,7 +108,17 @@ describe("HttpClient", () => {
 
   test("retries on 429 then succeeds", async () => {
     const { fetch, calls } = mockFetch([
-      { status: 429, body: { error: { type: "rate_limit_error", code: "rate_limited", message: "slow down" } }, headers: { "retry-after": "0" } },
+      {
+        status: 429,
+        body: {
+          error: {
+            type: "rate_limit_error",
+            code: "rate_limited",
+            message: "slow down",
+          },
+        },
+        headers: { "retry-after": "0" },
+      },
       { status: 200, body: { object: "me" } },
     ]);
     const pay = new KosovoPay({ apiKey: "sk_test_abc", fetch });
@@ -109,12 +126,63 @@ describe("HttpClient", () => {
     expect(calls.length).toBe(2);
   });
 
+  test("request() escape hatch sends method, path, body, and query", async () => {
+    const { fetch, calls } = mockFetch([{ status: 200, body: { ok: true } }]);
+    const pay = new KosovoPay({ apiKey: "sk_test_abc", fetch });
+
+    const res = await pay.request<{ ok: boolean }>("POST", "/custom/thing", {
+      body: { a: 1 },
+      query: { x: 2 },
+    });
+
+    expect(res).toEqual({ ok: true });
+    const url = new URL(calls[0]!.url);
+    expect(url.pathname).toBe("/api/sdk/custom/thing");
+    expect(url.searchParams.get("x")).toBe("2");
+    const headers = calls[0]!.init.headers as Headers;
+    // POST is a mutation, so it gets an auto idempotency key.
+    expect(headers.get("Idempotency-Key")).toBeTruthy();
+    expect(JSON.parse(calls[0]!.init.body as string)).toEqual({ a: 1 });
+  });
+
+  test("a caller abort surfaces as abort, not a timeout, and isn't retried", async () => {
+    const calls: RequestInit[] = [];
+    const fetch: FetchLike = (_url, init) =>
+      new Promise((_resolve, reject) => {
+        calls.push(init);
+        const abort = () => {
+          const e = new Error("aborted");
+          e.name = "AbortError";
+          reject(e);
+        };
+        if (init.signal?.aborted) return abort();
+        init.signal?.addEventListener("abort", abort);
+      });
+
+    const pay = new KosovoPay({ apiKey: "sk_test_abc", fetch, maxRetries: 2 });
+    const controller = new AbortController();
+    const promise = pay.me({ signal: controller.signal });
+    controller.abort();
+
+    const err = await promise.catch((e) => e);
+    expect(err.name).toBe("AbortError");
+    expect(err).not.toBeInstanceOf(KosovoPayTimeoutError);
+    expect(calls.length).toBe(1); // never retried
+  });
+
   test("query params are serialized and undefined dropped", async () => {
     const { fetch, calls } = mockFetch([
-      { status: 200, body: { object: "list", data: [], has_more: false, url: "/payments" } },
+      {
+        status: 200,
+        body: { object: "list", data: [], has_more: false, url: "/payments" },
+      },
     ]);
     const pay = new KosovoPay({ apiKey: "sk_test_abc", fetch });
-    await pay.payments.list({ limit: 50, status: "captured", currency: undefined });
+    await pay.payments.list({
+      limit: 50,
+      status: "captured",
+      currency: undefined,
+    });
     const url = new URL(calls[0]!.url);
     expect(url.searchParams.get("limit")).toBe("50");
     expect(url.searchParams.get("status")).toBe("captured");
@@ -128,7 +196,10 @@ describe("pagination", () => {
       object: "list",
       has_more: true,
       url: "/payments",
-      data: [{ ...payment, id: "pi_1" }, { ...payment, id: "pi_2" }],
+      data: [
+        { ...payment, id: "pi_1" },
+        { ...payment, id: "pi_2" },
+      ],
     };
     const page2 = {
       object: "list",
@@ -147,6 +218,8 @@ describe("pagination", () => {
 
     expect(ids).toEqual(["pi_1", "pi_2", "pi_3"]);
     // Second page requested with starting_after = last id of page 1.
-    expect(new URL(calls[1]!.url).searchParams.get("starting_after")).toBe("pi_2");
+    expect(new URL(calls[1]!.url).searchParams.get("starting_after")).toBe(
+      "pi_2",
+    );
   });
 });

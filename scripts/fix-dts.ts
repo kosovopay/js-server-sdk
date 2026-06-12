@@ -22,4 +22,6 @@ for await (const path of glob.scan(".")) {
   }
 }
 
-console.log(`fix-dts: rewrote .ts → .js specifiers in ${patched} declaration file(s)`);
+console.log(
+  `fix-dts: rewrote .ts → .js specifiers in ${patched} declaration file(s)`,
+);

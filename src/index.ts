@@ -1,7 +1,7 @@
 import {
-  HttpClient,
   type ClientOptions,
-  type FetchLike,
+  HttpClient,
+  type HttpMethod,
   type RequestOptions,
 } from "./client.ts";
 import { Banks } from "./resources/banks.ts";
@@ -41,10 +41,12 @@ export class KosovoPay {
   /** Verify and parse incoming webhook deliveries. */
   readonly webhooks: Webhooks;
 
+  #http: HttpClient;
   #identity: Identity;
 
   constructor(options: ClientOptions | string = {}) {
     const http = new HttpClient(options);
+    this.#http = http;
     this.payments = new Payments(http);
     this.refunds = new Refunds(http);
     this.banks = new Banks(http);
@@ -58,6 +60,29 @@ export class KosovoPay {
   me(options?: RequestOptions) {
     return this.#identity.retrieve(options);
   }
+
+  /**
+   * Low-level escape hatch. Call any endpoint directly — including ones this
+   * SDK version doesn't model yet — with the same auth, versioning, retries,
+   * and idempotency the typed resources get.
+   *
+   * ```ts
+   * const res = await pay.request<{ ok: boolean }>("POST", "/some/new/endpoint", {
+   *   body: { foo: "bar" },
+   * });
+   * ```
+   */
+  request<T = unknown>(
+    method: HttpMethod,
+    path: string,
+    params: {
+      query?: Record<string, string | number | undefined>;
+      body?: unknown;
+    } & RequestOptions = {},
+  ): Promise<T> {
+    const { query, body, ...options } = params;
+    return this.#http.request<T>({ method, path, query, body, options });
+  }
 }
 
 /**
@@ -67,7 +92,9 @@ export class KosovoPay {
  * const pay = createKosovoPay({ apiKey: env.KOSOVOPAY_API_KEY });
  * ```
  */
-export function createKosovoPay(options: ClientOptions | string = {}): KosovoPay {
+export function createKosovoPay(
+  options: ClientOptions | string = {},
+): KosovoPay {
   return new KosovoPay(options);
 }
 
@@ -75,29 +102,24 @@ export default KosovoPay;
 
 // Public surface.
 export {
+  type ClientOptions,
   DEFAULT_API_VERSION,
   DEFAULT_BASE_URL,
-  type ClientOptions,
   type FetchLike,
+  type HttpMethod,
   type RequestOptions,
 } from "./client.ts";
-export { Page, type PageFetcher } from "./pagination.ts";
 export {
-  SIGNATURE_HEADER,
-  Webhooks,
-  type VerifyOptions,
-} from "./webhooks.ts";
-export {
+  type ApiErrorBody,
+  type ErrorCode,
+  type ErrorType,
   KosovoPayApiError,
   KosovoPayConnectionError,
   KosovoPayError,
   KosovoPaySignatureVerificationError,
   KosovoPayTimeoutError,
-  type ApiErrorBody,
-  type ErrorCode,
-  type ErrorType,
 } from "./errors.ts";
-
+export { Page, type PageFetcher } from "./pagination.ts";
 // Resource classes (handy for typing helpers / DI).
 export { Banks } from "./resources/banks.ts";
 export { Currencies } from "./resources/currencies.ts";
@@ -105,5 +127,9 @@ export { Identity } from "./resources/identity.ts";
 export { Payments } from "./resources/payments.ts";
 export { Refunds } from "./resources/refunds.ts";
 export { WebhookEndpoints } from "./resources/webhook-endpoints.ts";
-
 export * from "./types.ts";
+export {
+  SIGNATURE_HEADER,
+  type VerifyOptions,
+  Webhooks,
+} from "./webhooks.ts";

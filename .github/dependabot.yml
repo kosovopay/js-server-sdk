@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Keep GitHub Actions pinned versions fresh (security + Node-runtime bumps).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  # Dev dependencies (TypeScript, Biome, Changesets, @types/bun).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+    groups:
+      dev-dependencies:
+        patterns:
+          - "*"

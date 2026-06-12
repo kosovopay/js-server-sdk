@@ -1,8 +1,8 @@
 import {
+  isApiErrorBody,
   KosovoPayApiError,
   KosovoPayConnectionError,
   KosovoPayTimeoutError,
-  isApiErrorBody,
 } from "./errors.ts";
 
 /** The default production base URL. */
@@ -12,10 +12,7 @@ export const DEFAULT_BASE_URL = "https://pay.kosovo.sh/api/sdk";
 export const DEFAULT_API_VERSION = "2026-06-01";
 
 /** A `fetch` implementation. Defaults to the runtime global. */
-export type FetchLike = (
-  input: string,
-  init: RequestInit,
-) => Promise<Response>;
+export type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
 
 export interface ClientOptions {
   /**
@@ -58,15 +55,18 @@ export interface RequestOptions {
   maxRetries?: number;
 }
 
+/** HTTP methods the transport understands. */
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
 interface InternalRequest {
-  method: "GET" | "POST" | "DELETE";
+  method: HttpMethod;
   path: string;
   query?: Record<string, string | number | undefined>;
   body?: unknown;
   options?: RequestOptions;
 }
 
-const isMutation = (method: string) => method === "POST" || method === "DELETE";
+const isMutation = (method: string) => method !== "GET";
 
 /**
  * The transport core. Resource namespaces are thin wrappers over `#request`.
@@ -145,8 +145,15 @@ export class HttpClient {
         // Re-throw API errors untouched.
         if (err instanceof KosovoPayApiError) throw err;
 
+        // A caller-initiated abort is not a timeout and must never be retried —
+        // surface the original abort so callers see the cancellation they asked for.
+        if (req.options?.signal?.aborted) throw err;
+
         const connErr = this.#toConnectionError(err);
-        if (!(connErr instanceof KosovoPayTimeoutError) && attempt < maxRetries) {
+        if (
+          !(connErr instanceof KosovoPayTimeoutError) &&
+          attempt < maxRetries
+        ) {
           await this.#backoff(attempt);
           attempt++;
           continue;
@@ -234,7 +241,11 @@ export class HttpClient {
       body = undefined;
     }
     if (isApiErrorBody(body)) {
-      return new KosovoPayApiError(body.error, response.status, response.headers);
+      return new KosovoPayApiError(
+        body.error,
+        response.status,
+        response.headers,
+      );
     }
     return new KosovoPayApiError(
       {
@@ -251,7 +262,9 @@ export class HttpClient {
     if (err instanceof KosovoPayConnectionError) return err;
     const aborted =
       (err instanceof Error && err.name === "AbortError") ||
-      (typeof err === "object" && err !== null && "name" in err &&
+      (typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
         (err as { name?: string }).name === "TimeoutError");
     if (aborted) {
       return new KosovoPayTimeoutError(
@@ -269,9 +282,16 @@ export class HttpClient {
   async #backoff(attempt: number, response?: Response): Promise<void> {
     const retryAfter = response?.headers.get("retry-after");
     if (retryAfter) {
+      // `Retry-After` may be a number of seconds or an HTTP date.
       const seconds = Number(retryAfter);
       if (Number.isFinite(seconds)) {
-        await sleep(seconds * 1000);
+        await sleep(Math.max(0, seconds * 1000));
+        return;
+      }
+      const whenMs = Date.parse(retryAfter);
+      if (Number.isFinite(whenMs)) {
+        // Cap at 60s so a far-future date can't stall a request indefinitely.
+        await sleep(Math.min(60_000, Math.max(0, whenMs - Date.now())));
         return;
       }
     }

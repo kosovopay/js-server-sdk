@@ -53,7 +53,10 @@ export class Payments {
       this.#http.request<ListResponse<Payment>>({
         method: "GET",
         path: "/payments",
-        query: { ...params, starting_after: startingAfter ?? params.starting_after },
+        query: {
+          ...params,
+          starting_after: startingAfter ?? params.starting_after,
+        },
         options,
       });
     return new Page(await fetchPage(undefined), fetchPage);
