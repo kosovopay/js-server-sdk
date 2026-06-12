@@ -71,7 +71,7 @@ const isMutation = (method: string) => method !== "GET";
 /**
  * The transport core. Resource namespaces are thin wrappers over `#request`.
  * Built on web-standard `fetch` + `AbortController`, so it runs unmodified on
- * Node 18+, Bun, Deno, and Cloudflare Workers.
+ * Node 20+, Bun, Deno, and Cloudflare Workers.
  */
 export class HttpClient {
   readonly #apiKey: string;

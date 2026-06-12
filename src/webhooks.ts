@@ -34,7 +34,7 @@ export interface VerifyOptions {
  * if (event.type === "payment.captured") { ... }
  * ```
  *
- * Web-Crypto based — runs unchanged on Cloudflare Workers, Bun, Deno, and Node 18+.
+ * Web-Crypto based — runs unchanged on Cloudflare Workers, Bun, Deno, and Node 20+.
  */
 export class Webhooks {
   /** Verify the signature and return the typed {@link Event}. Throws on failure. */

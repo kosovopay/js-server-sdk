@@ -53,7 +53,7 @@
     "release": "bun run build && changeset publish"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public",

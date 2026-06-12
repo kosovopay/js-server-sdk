@@ -5,7 +5,7 @@
 
 > Type-safe, runtime-agnostic server SDK for the [KosovoPay](https://pay.kosovo.sh/docs) payment orchestrator.
 
-One client. Runs unchanged on **Node 18+**, **Bun**, **Deno**, and **Cloudflare Workers** — built entirely on web-standard `fetch` and Web Crypto, with **zero dependencies**. Fully typed end to end: every resource, parameter, error `code`, and webhook event is inferred for you.
+One client. Runs unchanged on **Node 20+**, **Bun**, **Deno**, and **Cloudflare Workers** — built entirely on web-standard `fetch` and Web Crypto, with **zero dependencies**. Fully typed end to end: every resource, parameter, error `code`, and webhook event is inferred for you.
 
 ```ts
 import { KosovoPay } from "@kosovopay/server-sdk";
@@ -307,7 +307,7 @@ bun run build
 ```
 
 CI proves the cross-runtime promise: the built output is verified to contain no
-Node builtins and the smoke test runs on **Node 18/20/22, Bun, and Deno**.
+Node builtins and the smoke test runs on **Node 20/22/24, Bun, and Deno**.
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) to get started and
 [`SECURITY.md`](./SECURITY.md) to report a vulnerability.

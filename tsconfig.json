@@ -25,5 +25,10 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  // Type-check the library and its tests. `examples/` import by published
+  // package name and `scripts/` reference built `dist/`, so neither belongs in
+  // the source type-check program.
+  "include": ["src", "test"],
+  "exclude": ["node_modules", "dist", "examples", "scripts"]
 }
