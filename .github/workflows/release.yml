@@ -21,7 +21,7 @@ jobs:
     name: Version or publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # Full history so Changesets can determine what changed.
           fetch-depth: 0
@@ -31,7 +31,7 @@ jobs:
           bun-version: latest
 
       # `changeset publish` shells out to `npm publish`, so we need Node's npm.
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
 
