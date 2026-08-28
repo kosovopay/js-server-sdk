@@ -21,7 +21,7 @@ jobs:
     name: Version or publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           # Full history so Changesets can determine what changed.
           fetch-depth: 0
@@ -31,7 +31,7 @@ jobs:
           bun-version: latest
 
       # `changeset publish` shells out to `npm publish`, so we need Node's npm.
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -46,7 +46,7 @@ jobs:
       # PR. When that PR is merged, it instead runs `publish`, which builds and
       # publishes to npm via OIDC — no NPM_TOKEN required.
       - name: Create release PR or publish
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           version: bun run version
           publish: bun run release
